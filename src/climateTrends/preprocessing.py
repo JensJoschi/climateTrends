@@ -5,7 +5,7 @@ import pickle
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 
-from station import Station
+from climateTrends.station import Station
 
 def get_data( p: Path) -> pd.DataFrame:
     """reads data from one climate station. Returns a panda table with date and temperature"""
@@ -21,22 +21,22 @@ def get_data( p: Path) -> pd.DataFrame:
 
 def is_relevant(p:Path) -> bool:
     '''checks if absolutely neccessary data is contained (quick check only)'''
-        data = pd.read_csv(p, nrows = 0) #header only
-        required_cols = {"TMIN", "TMAX", "DATE"}
-        return required_cols.issubset(data.columns)
+    data = pd.read_csv(p, nrows = 0) #header only
+    required_cols = {"TMIN", "TMAX", "DATE"}
+    return required_cols.issubset(data.columns)
     
-def remove_irrelevant():      
+def remove_irrelevant(folder: Path) -> int:
     """remove files which do not have the required columns"""
-    folder = Path("weather_data")
     all_files = [f for f in folder.iterdir() if f.is_file()]
-    i = 0
+    removed = 0
     for file in all_files:
         if not is_relevant(file):
             file.unlink()
-            i += 1
-    print (f'{i} files removed. ') 
+            removed += 1
+    print (f'{removed} files removed. ') 
+    return removed
 
-def process_file(file: Path):
+def process_file(file: Path) -> Station | None:
     try:
         df = get_data(file)
         station = Station(file.stem)
@@ -44,14 +44,15 @@ def process_file(file: Path):
     except Exception:
         return None
 
-if __name__ == "__main__":
-    threads = os.cpu_count() * 20
-
-    #remove_irrelevant() #89162
-
-    folder = Path("weather_data")
-    all_files = [f for f in folder.iterdir() if f.is_file()]
+def main():
+    raw_folder = Path("data/raw/weather_data")
+    if not raw_folder.exists():
+        raise FileNotFoundError(f"Raw weather folder not found: {raw_folder}")
+#remove_irrelevant() #89162
+    all_files = [f for f in raw_folder.iterdir() if f.is_file()]
     print(f"{len(all_files)} stations.")
+
+    threads = os.cpu_count() * 20
 
     analysed = []
     with ThreadPoolExecutor(max_workers= threads) as executor:
@@ -62,5 +63,10 @@ if __name__ == "__main__":
                 analysed.append(result)
 
     print (f"Done. {len(analysed)} Stations.")
-    with open('stations.pkl', 'wb') as f:
+    output_path = Path("data/processed/stations.pkl")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, 'wb') as f:
         pickle.dump(analysed, f)
+
+    if __name__ == "__main__":
+        main()

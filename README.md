@@ -12,7 +12,7 @@ This repo does not perform a valid, scientific analysis. it is meant for demonst
 
 # State:
 [x] data preprocessing  
-[ ] Tests  
+[x] Tests  
 [ ] algorithms to find and open nearest station  
 [ ] UI  
 [ ] pretty displaying of results  

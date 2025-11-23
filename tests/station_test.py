@@ -1,5 +1,5 @@
 import pytest
-from station import Station
+from src.climateTrends.station import Station
 import pandas as pd
 import numpy as np
 import random 
