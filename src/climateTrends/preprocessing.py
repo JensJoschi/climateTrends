@@ -64,9 +64,11 @@ def main():
 
     print (f"Done. {len(analysed)} Stations.")
     output_path = Path("data/processed/stations.pkl")
+    print (output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'wb') as f:
         pickle.dump(analysed, f)
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    print ("start", flush = True)
+    main()
