@@ -5,7 +5,7 @@ import numpy as np
 import random 
 
 def test_station_all_good():
-    testStat = Station ("test")
+    testStat = Station ("test", (14,21.2))
     dates = pd.date_range("1983-01-01", "1988-12-31", freq="D")
     days = np.arange(len(dates))
     testData = pd.DataFrame({
@@ -23,7 +23,7 @@ def test_station_all_good():
     assert(np.mean(y['T']) == 40.7) #mean of 200+364/2 and 250+364/2; cut decimal according to GHCN file format
 
 def test_station_insufficient_data():
-    testStat = Station ("test")
+    testStat = Station ("test", (14,21.2))
     dates = pd.date_range("1983-01-01", "1984-06-10", freq="D")
     days = np.arange(len(dates))
     testData = pd.DataFrame({
@@ -35,8 +35,8 @@ def test_station_insufficient_data():
     assert(not enough)
 
 def test_station_badRsq():
-    testStat = Station ("test")
-    dates = pd.date_range("1983-01-01", "1988-12-31", freq="D")
+    testStat = Station ("test", (14,21.2))
+    dates = pd.date_range("1983-01-01", "1998-12-31", freq="D")
     r = [random.randint(0,100) for i in range(len(dates))]
     testData = pd.DataFrame({
         "DATE": dates,
@@ -47,3 +47,14 @@ def test_station_badRsq():
     assert(not ok)
     assert(testStat.statistics["rsq"] < 0.1) # close to 0, usually
 # slope should be ~ 0 and mean T approx 5 but testing this is inherently flaky due to randint()
+
+def test_station_coordinates():
+    testStat = Station("test", (14, 21.2))
+    assert(testStat.coordinates == (14,21.2))
+    t2 = Station("test", [12, 121.042])
+    assert(t2.coordinates == [12, 121.042])
+    with pytest.raises(ValueError):
+        Station("test", (14,))
+    
+    with pytest.raises(ValueError):
+        Station("test", (14, 21.2, 30))

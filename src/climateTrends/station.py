@@ -9,17 +9,20 @@ class Station:
     '''this class performs analysis on the provided data frame and stores the summary statistics and results. 
     Original dataframe is destructed in the process. Results are annual mean temperatures. 
     Summary statistics are r-squared, slope estimate and intercept'''
-    def __init__(self, name:str):
+    def __init__(self, name:str, coords: tuple):
         self.name = name
         self.sufficient = False
         self._annual_T = pd.DataFrame()
         self._model = None
+        self._coordinates = coords
+        if len(coords) != 2:
+            raise ValueError("coordinates must have two elements")
 
     def run(self, data: pd.DataFrame) -> bool:
         self._annual_T = self._clean_data(data)
         if not self.sufficient: return False
         self._model = self._analyse()
-        return True if self._model['rsq'] > 0.6 else False
+        return True# if self._model['rsq'] > 0.6 else False  -> possibly too strict
     
     @property
     def temperatures(self):
@@ -28,6 +31,10 @@ class Station:
     @property
     def statistics(self) -> dict:
         return self._model if self.sufficient else None
+    
+    @property
+    def coordinates(self) -> tuple:
+        return self._coordinates
     
     def plot (self):
         '''quick plot of results for validation, not beautiful but sufficient'''

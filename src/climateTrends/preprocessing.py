@@ -7,7 +7,7 @@ import os
 
 from climateTrends.station import Station
 
-def get_data( p: Path) -> pd.DataFrame:
+def get_data( p: Path) -> tuple[pd.DataFrame, tuple]:
     """reads data from one climate station. Returns a panda table with date and temperature"""
     if not p.exists():
         raise FileNotFoundError(f"CSV file not found: {p}")
@@ -15,9 +15,11 @@ def get_data( p: Path) -> pd.DataFrame:
         data = pd.read_csv(p, usecols=["TMIN", "TMAX", "DATE"])
         if len(data) < 180:
             raise ValueError ("too little data")
+        c = pd.read_csv(p, nrows = 1)
+        coordinates = (c['LATITUDE'][0], c['LONGITUDE'][0])
     except ValueError as e:
         raise ValueError(f"Error reading CSV: {e}")
-    return data    
+    return (data, coordinates)
 
 def is_relevant(p:Path) -> bool:
     '''checks if absolutely neccessary data is contained (quick check only)'''
@@ -38,14 +40,14 @@ def remove_irrelevant(folder: Path) -> int:
 
 def process_file(file: Path) -> Station | None:
     try:
-        df = get_data(file)
-        station = Station(file.stem)
-        return station if station.run() else None
+        df,c = get_data(file)
+        station = Station(file.stem, c)
+        return station if station.run(df) else None
     except Exception:
         return None
 
 def main():
-    raw_folder = Path("data/raw/weather_data")
+    raw_folder = Path("raw_ghcn")
     if not raw_folder.exists():
         raise FileNotFoundError(f"Raw weather folder not found: {raw_folder}")
 #remove_irrelevant() #89162
@@ -63,7 +65,7 @@ def main():
                 analysed.append(result)
 
     print (f"Done. {len(analysed)} Stations.")
-    output_path = Path("data/processed/stations.pkl")
+    output_path = Path("data/stations.pkl")
     print (output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, 'wb') as f:
