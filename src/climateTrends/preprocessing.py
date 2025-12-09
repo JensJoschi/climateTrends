@@ -1,6 +1,5 @@
 from pathlib import Path
 import pandas as pd
-import random
 import pickle
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
@@ -39,6 +38,7 @@ def remove_irrelevant(folder: Path) -> int:
     return removed
 
 def process_file(file: Path) -> Station | None:
+    '''helper for concurrency'''
     try:
         df,c = get_data(file)
         station = Station(file.stem, c)

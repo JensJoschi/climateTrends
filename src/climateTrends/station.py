@@ -19,6 +19,9 @@ class Station:
             raise ValueError("coordinates must have two elements")
 
     def run(self, data: pd.DataFrame) -> bool:
+        '''clean and analyse one climate station. 
+        Returns true if analysis was successful. 
+        "Successful" currently means enough data to do something useful, but not necessarily enough for statistically robust results'''
         self._annual_T = self._clean_data(data)
         if not self.sufficient: return False
         self._model = self._analyse()
